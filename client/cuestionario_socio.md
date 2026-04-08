@@ -15,7 +15,7 @@ Cuando tienes una necesidad de compra —pongamos andamios, hormigón, o una sub
 1. **Identificar y organizar** a los proveedores que quieres consultar.
 2. **Enviar las peticiones de oferta** (RFQ) por correo, con el tono y el detalle adecuados para cada proveedor.
 3. **Recoger y comparar** las ofertas recibidas, aunque lleguen en formatos distintos.
-4. **Negociar de forma autónoma** — hace contraofertás, cede en los puntos que tú le permites y defiende los que son innegociables, siempre dentro de los límites que tú marcas.
+4. **Negociar de forma autónoma** — hace contraofertas, cede en los puntos que tú le permites y defiende los que son innegociables, siempre dentro de los límites que tú marcas.
 5. **Presentarte un resumen** para que decidas con quién cerrar y en qué condiciones.
 
 Todo el proceso se registra, para que tengas un historial de cada negociación y puedas usarlo en futuras compras.
