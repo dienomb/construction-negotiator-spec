@@ -1,42 +1,33 @@
-# Construction Negotiator — Product Spec
+# Construction Negotiator — Business Product Spec
 
-## Vision
+Construction Negotiator is a single-user procurement assistant for construction buying. It helps one person manage supplier outreach, collect quotes, run structured negotiations, compare offers, and record final agreements in one place so they can save time, improve buying discipline, and secure better commercial outcomes without juggling email threads and spreadsheets.
 
-Build an AI-powered negotiation assistant that helps construction companies, contractors, and procurement teams secure better deals with suppliers — faster, more consistently, and at scale. The system automates outreach, applies proven negotiation frameworks, and learns over time which strategies win.
+## Core Problem
 
-## Problem
+A single buyer often has to manage many supplier conversations at once while also protecting project margins, delivery dates, and supplier relationships. In practice, that work is fragmented across inboxes, spreadsheets, and memory, which makes it hard to compare offers fairly, follow up consistently, and negotiate with confidence.
 
-Construction procurement is slow, relationship-dependent, and opaque. Procurement managers spend hours crafting individual supplier emails, negotiating on gut feel, and tracking outcomes across spreadsheets. There is no institutional memory of what worked, no systematic approach to trade-offs, and no way to run concurrent negotiations at scale.
+## Key Capabilities
 
-Key pain points:
-- **Inconsistent outcomes** — different project managers get wildly different prices from the same suppliers.
-- **Time-intensive manual process** — each negotiation is bespoke; no reuse of successful tactics.
-- **No data feedback loop** — wins and losses are not recorded in a way that improves future negotiations.
-- **Limited leverage** — small/mid-size firms lack the volume to command large-enterprise pricing.
-- **Supplier relationship risk** — aggressive tactics can damage long-term relationships if applied clumsily.
+- Build a project brief once and use it to launch supplier conversations quickly.
+- Find and organise suppliers for the relevant trade, material, or package.
+- Send clear RFQs and follow-ups without rebuilding each message from scratch.
+- Collect and interpret quotes from different email and spreadsheet formats.
+- Negotiate on price, lead time, payment terms, and scope using consistent trade-off logic.
+- Compare suppliers side by side and log the final deal for future reference.
 
-## Target User
+## Specification Overview
 
-**Primary:** Procurement managers and project directors at small-to-mid-size general contractors and specialty subcontractors (5–200 employees, $2M–$200M annual revenue).
+| Spec File | What It Covers | Status |
+|---|---|---|
+| [docs/01_capabilities.md](docs/01_capabilities.md) | Product capabilities and user value areas | Current |
+| [docs/02_negotiation_logic.md](docs/02_negotiation_logic.md) | Business negotiation principles, trade-offs, and guardrails | Current |
+| [docs/04_workflows.md](docs/04_workflows.md) | End-to-end user workflow from project setup to agreement logging | Current |
+| [docs/06_integrations.md](docs/06_integrations.md) | User-facing integrations for email, spreadsheets, and future connected systems | Current |
 
-**Secondary:** Owners and estimators at construction firms who handle their own supplier negotiations without dedicated procurement staff.
+## Suggested Additions
 
-**Characteristics:**
-- Comfortable with email and basic spreadsheets; not necessarily technical.
-- Negotiate with 10–100 suppliers across materials, equipment, and subcontract scope.
-- Time-constrained — need automation that feels like a smart assistant, not a tool they have to babysit.
-- Value relationships but also need to hit project margins.
-
-## Documentation
-
-| File | Description |
-|------|-------------|
-| [docs/01_capabilities.md](docs/01_capabilities.md) | Full feature list |
-| [docs/02_negotiation_logic.md](docs/02_negotiation_logic.md) | Harvard style, trade-offs, decision tree |
-| [docs/03_data_model.md](docs/03_data_model.md) | Database tables, relationships |
-| [docs/04_workflows.md](docs/04_workflows.md) | Step-by-step flows (outreach → negotiate → agree) |
-| [docs/05_ai_prompts.md](docs/05_ai_prompts.md) | All system prompts, negotiation strategies |
-| [docs/06_integrations.md](docs/06_integrations.md) | Gmail, Excel, future CRM/ERP |
-| [docs/07_architecture.md](docs/07_architecture.md) | Tech stack, scaling plan |
-| [research/competitors.md](research/competitors.md) | Pactum, LightSource, Zepth findings |
-| [research/market.md](research/market.md) | Market size, opportunity, pricing |
+- A supplier pre-qualification checklist so the user can filter out weak or risky suppliers before requesting quotes.
+- A clear urgency and deadline tracker so late replies and stalled negotiations are easier to manage.
+- A simple risk view that highlights unusual exclusions, long lead times, or unfavourable payment terms before agreement.
+- A post-award handoff summary so agreed commercial terms can be passed into purchasing or project delivery without rework.
+- A reusable supplier performance history so the user can see who consistently responds well, negotiates fairly, and delivers reliably.
