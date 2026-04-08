@@ -252,11 +252,12 @@ function toggleRec(btn){
   if(arec)arec.stop();
   const ta=document.getElementById(btn.dataset.t);if(!ta)return;
   const r=new SR();r.lang='es-ES';r.continuous=true;r.interimResults=true;
+  const base=ta.value;
   let ft='';
   r.onstart=()=>{btn.classList.add('rec');abtn=btn};
   r.onresult=(e)=>{let im='';for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)ft+=e.results[i][0].transcript+' ';else im+=e.results[i][0].transcript}
-    const ex=ta.value.trimEnd();ta.value=ex+(ex?'\n':'')+ft+im};
-  r.onend=()=>{btn.classList.remove('rec');if(abtn===btn){arec=null;abtn=null}if(ft){ta.value=ta.value.trimEnd();save()}};
+    ta.value=base+(base?'\n':'')+ft+im};
+  r.onend=()=>{btn.classList.remove('rec');if(abtn===btn){arec=null;abtn=null}ta.value=(base+(base?'\n':'')+ft).trimEnd();save()};
   r.onerror=()=>{btn.classList.remove('rec');arec=null;abtn=null};
   arec=r;ft='';r.start();
 }
