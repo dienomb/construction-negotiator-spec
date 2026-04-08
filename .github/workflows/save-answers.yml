@@ -1,0 +1,33 @@
+name: Save Questionnaire Answers
+
+on:
+  repository_dispatch:
+    types: [questionnaire-response]
+
+permissions:
+  contents: write
+
+jobs:
+  save:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Save answers to file
+        run: |
+          mkdir -p client/respuestas
+          SLUG=$(echo "${{ github.event.client_payload.nombre }}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/-$//')
+          DATE=$(date +%Y-%m-%d)
+          FILE="client/respuestas/${SLUG}_${DATE}.json"
+          echo '${{ toJSON(github.event.client_payload) }}' > "$FILE"
+
+      - name: Commit and push
+        run: |
+          git config user.name "Construction Negotiator Bot"
+          git config user.email "bot@construction-negotiator.local"
+          git add client/respuestas/
+          git diff --cached --quiet && echo "No changes" && exit 0
+          NOMBRE="${{ github.event.client_payload.nombre }}"
+          DATE=$(date +%Y-%m-%d)
+          git commit -m "respuestas: ${NOMBRE} (${DATE})"
+          git push

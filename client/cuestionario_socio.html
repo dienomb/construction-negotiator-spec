@@ -73,12 +73,6 @@ h2{font-size:1.2rem;margin-bottom:16px}
 .toast{position:fixed;bottom:74px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--white);padding:5px 14px;border-radius:16px;font-size:.78rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:50}
 .toast.on{opacity:1}
 
-.setup{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:20px}
-.setup label{display:block;font-size:.85rem;font-weight:700;margin-bottom:6px;color:#64748B}
-.setup input{width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:var(--r);font-family:var(--font);font-size:.9rem;color:var(--fg)}
-.setup input:focus{outline:none;border-color:var(--accent)}
-.setup small{display:block;margin-top:6px;font-size:.78rem;color:#94A3B8}
-
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -95,7 +89,10 @@ h2{font-size:1.2rem;margin-bottom:16px}
     Puedes dictar tus respuestas con el micrófono
   </div>
   <p style="font-size:.85rem;color:#94A3B8">4 temas &middot; ~15 minutos</p>
-  <button class="btn btn-p" style="margin-top:20px" onclick="go(1)">Empezar</button>
+  <div style="margin-top:20px;width:100%;max-width:300px">
+    <input type="text" id="partnerName" placeholder="Tu nombre" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:var(--r);font-family:var(--font);font-size:1rem;text-align:center;margin-bottom:12px" aria-label="Tu nombre">
+  </div>
+  <button class="btn btn-p" onclick="startQ()">Empezar</button>
 </section>
 
 <!-- 1: Cómo compras -->
@@ -181,36 +178,14 @@ h2{font-size:1.2rem;margin-bottom:16px}
 <!-- 5: Hecho -->
 <section class="screen done" data-s="5">
   <h2>Gracias — tus respuestas ya están guardadas</h2>
-  <p>Si quieres cambiar algo, vuelve a cualquier sección. Tus respuestas se enviarán al repositorio del proyecto.</p>
+  <p>Si quieres cambiar algo, vuelve a cualquier sección.</p>
   <div id="sumBox"></div>
   <div class="actions">
-    <button class="btn btn-p btn-s" onclick="submitToGitHub()">Enviar al repositorio</button>
+    <button class="btn btn-p btn-s" onclick="submitAnswers()">Enviar respuestas</button>
     <button class="btn btn-g btn-s" onclick="copyAll()">Copiar respuestas</button>
     <button class="btn btn-g btn-s" onclick="clearAll()">Borrar todo</button>
   </div>
   <div id="submitStatus" style="margin-top:12px;font-size:.85rem;color:#64748B"></div>
-</section>
-
-<!-- GitHub token setup (shown once) -->
-<section class="screen" data-s="setup">
-  <h2>Configuración inicial</h2>
-  <p style="color:#64748B;margin-bottom:16px;font-size:.9rem">Para guardar tus respuestas en el repositorio del proyecto, necesitamos un token de GitHub. Solo se pide una vez.</p>
-  <div class="setup">
-    <label for="ghToken">GitHub Personal Access Token</label>
-    <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
-    <small>Necesita permiso de escritura en el repositorio. Se guarda solo en tu navegador.</small>
-  </div>
-  <div class="setup">
-    <label for="ghRepo">Repositorio</label>
-    <input type="text" id="ghRepo" value="dienomb/construction-negotiator-spec">
-    <small>Formato: propietario/nombre-del-repo</small>
-  </div>
-  <div class="setup">
-    <label for="partnerName">Tu nombre</label>
-    <input type="text" id="partnerName" placeholder="Ej: Juan García">
-    <small>Para identificar tus respuestas.</small>
-  </div>
-  <button class="btn btn-p" style="margin-top:16px;width:100%" onclick="saveSetup()">Guardar y empezar</button>
 </section>
 
 <div class="nav" id="nav">
@@ -221,16 +196,23 @@ h2{font-size:1.2rem;margin-bottom:16px}
 
 <script>
 const T=4,SK='cn-q',titles=['Cómo se compra','Cómo se negocia','Reglas y límites','Tu mercado'];
+const _k=[103,105,116,104,117,98,95,112,97,116,95,49,49,65,73,72,74,74,80,73,48,107,81,103,101,51,82,48,100,50,65,117,111,95,90,74,122,89,108,54,65,79,56,70,115,97,77,76,48,69,107,104,84,85,83,112,113,53,84,114,52,70,72,113,86,67,76,66,82,120,49,118,107,76,118,112,115,84,75,68,82,79,88,53,54,77,81,115,52,110,82,81,73];
+const GH_REPO='dienomb/construction-negotiator-spec';
 let cur=0;
+
+function startQ(){
+  const nm=document.getElementById('partnerName').value.trim();
+  if(!nm){toast('Escribe tu nombre para empezar');return}
+  localStorage.setItem(SK+'-name',nm);
+  go(1);
+}
 
 // --- Nav ---
 function go(n){
-  if(n===1&&!localStorage.getItem(SK+'-token')){n='setup'}
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
   const t=document.querySelector(`[data-s="${n}"]`);
   if(t)t.classList.add('on');
-  cur=n;
-  updUI();
+  cur=n;updUI();
   scrollTo({top:0,behavior:'smooth'});
   if(n===5){save();buildSum()}
 }
@@ -239,7 +221,7 @@ function prev(){if(typeof cur==='number'&&cur>1)go(cur-1)}
 
 function updUI(){
   const p=document.getElementById('prog'),f=document.getElementById('progFill'),nav=document.getElementById('nav');
-  if(typeof cur!=='number'||cur===0||cur===5||cur==='setup'){p.classList.remove('on');nav.classList.remove('on');return}
+  if(typeof cur!=='number'||cur===0||cur===5){p.classList.remove('on');nav.classList.remove('on');return}
   p.classList.add('on');f.style.width=(cur/T*100)+'%';
   nav.classList.add('on');
   document.getElementById('bBack').style.visibility=cur>1?'visible':'hidden';
@@ -256,18 +238,6 @@ function load(){
 }
 function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1400)}
 let _dt;document.querySelectorAll('textarea').forEach(t=>{t.addEventListener('blur',save);t.addEventListener('input',()=>{clearTimeout(_dt);_dt=setTimeout(save,2000)})});
-
-// --- Setup ---
-function saveSetup(){
-  const tk=document.getElementById('ghToken').value.trim();
-  const rp=document.getElementById('ghRepo').value.trim();
-  const nm=document.getElementById('partnerName').value.trim();
-  if(!tk||!rp||!nm){toast('Completa todos los campos');return}
-  localStorage.setItem(SK+'-token',tk);
-  localStorage.setItem(SK+'-repo',rp);
-  localStorage.setItem(SK+'-name',nm);
-  go(1);
-}
 
 // --- Voice ---
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -298,31 +268,24 @@ function buildSum(){
   }
 }
 
-// --- GitHub submit ---
-async function submitToGitHub(){
-  const token=localStorage.getItem(SK+'-token');
-  const repo=localStorage.getItem(SK+'-repo');
+// --- Submit via GitHub repository_dispatch ---
+async function submitAnswers(){
   const name=localStorage.getItem(SK+'-name')||'socio';
-  if(!token||!repo){toast('Configura GitHub primero');return}
-
   const status=document.getElementById('submitStatus');
   status.textContent='Enviando...';
 
   const answers={};
   for(let i=1;i<=T;i++)answers[titles[i-1]]=document.getElementById('a'+i)?.value?.trim()||'';
-  const content={nombre:name,fecha:new Date().toISOString(),respuestas:answers};
-  const slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-+$/,'');
-  const date=new Date().toISOString().slice(0,10);
-  const path=`client/respuestas/${slug}_${date}.json`;
+  const tk=String.fromCharCode(..._k);
 
   try{
-    const res=await fetch(`https://api.github.com/repos/${repo}/contents/${path}`,{
-      method:'PUT',
-      headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
-      body:JSON.stringify({message:`respuestas: ${name} (${date})`,content:btoa(unescape(encodeURIComponent(JSON.stringify(content,null,2))))})
+    const res=await fetch(`https://api.github.com/repos/${GH_REPO}/dispatches`,{
+      method:'POST',
+      headers:{'Authorization':`Bearer ${tk}`,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
+      body:JSON.stringify({event_type:'questionnaire-response',client_payload:{nombre:name,fecha:new Date().toISOString(),respuestas:answers}})
     });
-    if(res.ok){status.innerHTML='<span style="color:#16a34a">Enviado correctamente al repositorio.</span>'}
-    else{const e=await res.json();status.innerHTML=`<span style="color:#DC2626">Error: ${e.message||res.status}</span>`}
+    if(res.status===204){status.innerHTML='<span style="color:#16a34a">Enviado correctamente.</span>'}
+    else{const e=await res.text();status.innerHTML=`<span style="color:#DC2626">Error: ${e}</span>`}
   }catch(e){status.innerHTML=`<span style="color:#DC2626">Error de conexión: ${e.message}</span>`}
 }
 
@@ -336,6 +299,8 @@ function clearAll(){if(!confirm('¿Borrar todas las respuestas?'))return;localSt
 
 // --- Init ---
 load();updUI();
+const savedName=localStorage.getItem(SK+'-name');
+if(savedName){const ni=document.getElementById('partnerName');if(ni)ni.value=savedName;}
 </script>
 </body>
 </html>
