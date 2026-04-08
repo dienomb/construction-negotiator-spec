@@ -1,154 +1,86 @@
-# Workflows — Step-by-Step Flows
+# Workflows
 
-## Overview
+## Stage 1: Project Setup
 
-The system supports three primary workflow types:
+**What triggers it**  
+The user starts a new buying exercise for a project, package, material order, or subcontract scope.
 
-1. **Outreach Flow** — from job setup to first supplier contact.
-2. **Negotiation Flow** — from first response to agreed deal.
-3. **Close & Record Flow** — from agreement to deal archive.
+**What the user sees**  
+A guided setup flow where they define the project name, what needs to be bought, required quantities or scope, delivery expectations, target commercial outcome, and any priorities such as price, lead time, payment terms, or warranty.
 
----
+**What the system does automatically**  
+It creates a structured negotiation record, organises the buying requirement into a reusable project brief, and prepares the information needed for supplier outreach and later comparison.
 
-## Flow 1: Outreach
+## Stage 2: Supplier Discovery
 
-```
-1. User creates or selects a Project
-       │
-2. User creates a new Negotiation within the project
-   - Selects supplier (existing or new)
-   - Sets category (e.g., "structural steel")
-   - Uploads or pastes quote request details (scope, BOQ line items, delivery date)
-   - Sets target price and BATNA price
-   - Chooses concession strategy and tone
-       │
-3. System generates initial outreach email
-   - AI selects the best-fit template for the category and relationship tier
-   - Populates with project context, scope summary, and requested terms
-   - User reviews and edits (optional)
-       │
-4. User approves and sends
-   - Email dispatched via connected Gmail/Outlook account
-   - Negotiation status → "outreach"
-   - Follow-up timer started (configurable, default 3 days)
-       │
-5. If no reply within follow-up window:
-   - System sends automated follow-up (up to max_follow_ups)
-   - Each follow-up logged as a Message record
-```
+**What triggers it**  
+The project brief is ready and the user wants to decide which suppliers to approach.
 
----
+**What the user sees**  
+A shortlist of suppliers for the relevant trade or material category, including prior history, known strengths, responsiveness, and any existing relationship notes.
 
-## Flow 2: Negotiation
+**What the system does automatically**  
+It groups suppliers by relevance, highlights past outcomes where available, and helps the user build a practical tender list with both preferred suppliers and backup options.
 
-```
-1. Inbound supplier email received (via connected email account)
-       │
-2. System parses the email
-   - Extracts quoted price, payment terms, lead time, and any exclusions
-   - Updates negotiation record with `initial_quoted_price` and parsed trade-off values
-   - Negotiation status → "in_progress"
-       │
-3. AI evaluates the quote
-   - Checks against target price and BATNA
-   - Runs trade-off matrix analysis (weighted score)
-   - Selects concession strategy appropriate for the current round
-       │
-4. AI generates counter-offer
-   - Drafts counter-offer email with rationale
-   - Suggests alternative trade-off packages if a straight price counter is unlikely to succeed
-   - Flags if any proposed terms breach company negotiation policy
-       │
-5. User reviews counter-offer
-   - Can accept AI recommendation, edit, or override entirely
-   - Can adjust weights/trade-off priorities before approving
-       │
-6. Counter-offer sent; round counter incremented
-       │
-7. Repeat from step 1 until:
-   a. Agreement reached → continue to Flow 3
-   b. BATNA breached → system recommends rejection; user decides
-   c. Max rounds reached → system flags for user decision
-   d. Supplier unresponsive → marked as "abandoned" after max follow-ups
-```
+## Stage 3: Outreach with RFQ
 
----
+**What triggers it**  
+The user selects one or more suppliers and is ready to request pricing and terms.
 
-## Flow 3: Close & Record
+**What the user sees**  
+A clear RFQ draft that summarises the requirement, the requested response deadline, and the commercial details the supplier should return.
 
-```
-1. User accepts a supplier proposal (or supplier accepts our final offer)
-       │
-2. System updates negotiation status → "agreed"
-   - Records agreed_price, agreed terms in trade_offs table
-   - Calculates savings_achieved (initial quote vs. agreed price)
-       │
-3. Deal record created
-   - agreed_price, payment_terms_days, lead_time_days populated
-   - User optionally uploads signed PO or contract document
-       │
-4. Confirmation email generated and sent to supplier
-   - Summarises all agreed terms
-   - Logged as final outbound Message
-       │
-5. Supplier profile updated
-   - discount_range_pct, reliability_score, payment_terms_typical refreshed
-   - New deal added to supplier negotiation history
-       │
-6. Savings and outcome data flows to Reporting dashboard
-```
+**What the system does automatically**  
+It prepares consistent outreach messages, tailors the wording to the supplier relationship, tracks who has received the RFQ, and schedules follow-up activity if responses do not arrive on time.
 
----
+## Stage 4: Quote Collection
 
-## Flow 4: Batch Outreach (Multiple Suppliers)
+**What triggers it**  
+Suppliers begin replying with prices, clarifications, attachments, or alternative offers.
 
-```
-1. User sets up a "competitive tender" negotiation group
-   - Selects 2–10 suppliers for the same scope
-   - Sets shared scope/BOQ and terms
-       │
-2. System sends simultaneous outreach to all selected suppliers
-   - Each supplier gets an individualised email (tone/relationship-adjusted)
-   - Each supplier tracked as a separate Negotiation record
-       │
-3. As quotes arrive, system aggregates them into a comparison view
-   - Side-by-side: price, terms, lead time, total weighted score
-       │
-4. User selects preferred supplier(s) to continue negotiating
-   - Remaining suppliers receive a polite "not successful this time" email
-   - System records outcome for all suppliers
-```
+**What the user sees**  
+A growing quote register that shows which suppliers have replied, which are still pending, and what each offer includes across price, lead time, payment terms, exclusions, and other key commercial points.
 
----
+**What the system does automatically**  
+It captures quotes from email replies and spreadsheet imports, interprets quote details even when suppliers use different wording or formats, and turns those responses into a consistent comparison structure.
 
-## Flow 5: Approval Workflow (Enterprise)
+## Stage 5: Autonomous Negotiation
 
-```
-1. AI recommends accepting a deal
-       │
-2. Deal value > approval threshold configured by admin?
-   ├─ NO  → User can accept immediately
-   └─ YES → Approval request generated
-                │
-             3. Notification sent to approver (email + in-app)
-                │
-             4. Approver reviews deal summary and negotiation history
-                │
-             5. Approver: APPROVE or REJECT (with reason)
-                │
-             APPROVE → deal confirmed, supplier notified
-             REJECT  → negotiation re-opened or abandoned
-```
+**What triggers it**  
+At least one supplier quote has been received and the user wants the system to negotiate toward a better outcome.
 
----
+**What the user sees**  
+A recommended negotiation path showing the current offer, the next proposed message, the trade-offs being used, and the likely impact on overall value.
 
-## Status State Machine
+**What the system does automatically**  
+It negotiates using structured trade-off logic and the Harvard framework, balancing price with variables such as delivery timing, payment terms, scope, and warranty. It interprets supplier replies from any normal email format, keeps the conversation commercially consistent, protects the user’s position by never revealing the budget ceiling or walk-away limit, and adjusts proposals based on supplier responses and relationship context.
 
-```
-draft → outreach → in_progress → agreed
-                              → rejected
-                              → abandoned
-outreach → abandoned (no response after max follow-ups)
-```
+## Stage 6: Vendor Comparison and Scoring
 
-All status transitions are logged with timestamp and acting user.
+**What triggers it**  
+Multiple supplier offers are available or negotiations have reached a point where the user needs to decide which supplier is strongest.
+
+**What the user sees**  
+A side-by-side comparison of suppliers with clear scoring across commercial value, responsiveness, delivery fit, risk factors, and overall suitability for the project.
+
+**What the system does automatically**  
+It converts different offers into a common evaluation view, scores suppliers against the user’s stated priorities, and highlights the leading option, close alternatives, and any trade-offs the user should review before deciding.
+
+## Stage 7: Agreement and Deal Logging
+
+**What triggers it**  
+The user decides to award the work or accept an offer.
+
+**What the user sees**  
+A final deal summary showing the agreed supplier, the agreed commercial terms, what changed during negotiation, and a record ready for future reference.
+
+**What the system does automatically**  
+It logs the final agreement, captures the commercial outcome against the starting quote, stores the negotiation history, and preserves the supplier record so future buying decisions benefit from what happened in this negotiation.
+
+## Suggested Additions
+
+- Add a supplier qualification checkpoint before outreach so insurance, capacity, compliance, and trade suitability can be reviewed early.
+- Add a clarification stage for questions on drawings, scope gaps, or exclusions before negotiation begins in earnest.
+- Add deadline management that recommends when to chase, when to pause, and when to switch focus to backup suppliers.
+- Add a deal risk summary before award to surface commercial gaps that could create downstream project issues.
+- Add a simple renewal or repeat-buy workflow so trusted suppliers can be reused faster on similar future packages.
