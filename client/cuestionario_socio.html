@@ -88,7 +88,7 @@ h2{font-size:1.2rem;margin-bottom:16px}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
     Puedes dictar tus respuestas con el micrófono
   </div>
-  <p style="font-size:.85rem;color:#94A3B8">4 temas &middot; ~15 minutos</p>
+  <p style="font-size:.85rem;color:#94A3B8">4 temas &middot; puedes completarlo en varias sesiones</p>
   <div style="margin-top:20px;width:100%;max-width:300px">
     <input type="text" id="partnerName" placeholder="Tu nombre" style="width:100%;padding:12px;border:2px solid var(--border);border-radius:var(--r);font-family:var(--font);font-size:1rem;text-align:center;margin-bottom:12px" aria-label="Tu nombre">
   </div>
@@ -204,7 +204,8 @@ function startQ(){
   const nm=document.getElementById('partnerName').value.trim();
   if(!nm){toast('Escribe tu nombre para empezar');return}
   localStorage.setItem(SK+'-name',nm);
-  go(1);
+  const saved=parseInt(localStorage.getItem(SK+'-screen'));
+  go(saved>=1&&saved<=T?saved:1);
 }
 
 // --- Nav ---
@@ -213,6 +214,7 @@ function go(n){
   const t=document.querySelector(`[data-s="${n}"]`);
   if(t)t.classList.add('on');
   cur=n;updUI();
+  if(typeof n==='number'&&n>=1&&n<=T)localStorage.setItem(SK+'-screen',n);
   scrollTo({top:0,behavior:'smooth'});
   if(n===5){save();buildSum()}
 }
@@ -300,7 +302,11 @@ function clearAll(){if(!confirm('¿Borrar todas las respuestas?'))return;localSt
 // --- Init ---
 load();updUI();
 const savedName=localStorage.getItem(SK+'-name');
-if(savedName){const ni=document.getElementById('partnerName');if(ni)ni.value=savedName;}
+if(savedName){
+  const ni=document.getElementById('partnerName');if(ni)ni.value=savedName;
+  const btn=document.querySelector('[data-s="0"] .btn-p');
+  if(btn&&localStorage.getItem(SK+'-screen'))btn.textContent='Continuar';
+}
 </script>
 </body>
 </html>
