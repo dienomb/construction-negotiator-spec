@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Construction Negotiator — Cuestionario</title>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--accent:#EA580C;--bg:#F8FAFC;--fg:#334155;--muted:#EBF0F5;--border:#E2E8F0;--white:#fff;--r:10px;--font:'Atkinson Hyperlegible',system-ui,sans-serif}
+html{font-size:16px;overscroll-behavior:contain}
+body{font-family:var(--font);color:var(--fg);background:var(--bg);min-height:100dvh;display:flex;flex-direction:column;align-items:center}
+
+.progress{position:fixed;top:0;left:0;width:100%;height:4px;background:var(--muted);z-index:100;display:none}
+.progress.on{display:block}
+.progress-fill{height:100%;background:var(--accent);transition:width .4s ease-out;width:0}
+
+.screen{display:none;width:100%;max-width:580px;padding:20px 16px 120px;animation:fadeIn .25s ease}
+.screen.on{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.welcome{padding-top:25vh;text-align:center;min-height:100dvh}
+.welcome.on{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.welcome h1{font-size:1.4rem;margin-bottom:12px;line-height:1.3}
+.welcome p{color:#64748B;margin-bottom:10px;max-width:440px;font-size:.95rem}
+.mic-hint{display:inline-flex;align-items:center;gap:6px;background:var(--muted);padding:8px 14px;border-radius:var(--r);font-size:.85rem;margin:14px 0 24px}
+.mic-hint svg{width:18px;height:18px;color:var(--accent);flex-shrink:0}
+
+h2{font-size:1.2rem;margin-bottom:16px}
+.prompts{list-style:none;margin-bottom:16px}
+.prompts li{padding:6px 0 6px 18px;font-size:.9rem;color:#64748B;position:relative;line-height:1.5}
+.prompts li::before{content:'';position:absolute;left:0;top:12px;width:7px;height:7px;border-radius:50%;background:var(--accent);opacity:.5}
+
+.ta-wrap{position:relative;margin-bottom:20px}
+.ta-wrap textarea{width:100%;min-height:160px;padding:14px 50px 14px 14px;border:2px solid var(--border);border-radius:var(--r);font-family:var(--font);font-size:1rem;line-height:1.6;color:var(--fg);background:var(--white);resize:vertical;-webkit-appearance:none}
+.ta-wrap textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(234,88,12,.1)}
+.ta-wrap textarea::placeholder{color:var(--border);font-style:italic}
+
+.mic{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;border:none;background:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.mic:hover{background:var(--border)}
+.mic svg{width:18px;height:18px;color:#64748B}
+.mic.rec{background:var(--accent);animation:pulse 1.2s infinite}
+.mic.rec svg{color:var(--white)}
+.mic.hide{display:none}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(234,88,12,.35)}50%{box-shadow:0 0 0 10px rgba(234,88,12,0)}}
+
+.tips{background:var(--white);border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px}
+.tips summary{padding:10px 14px;font-size:.82rem;font-weight:700;color:#64748B;cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px}
+.tips summary::-webkit-details-marker{display:none}
+.tips summary svg{width:15px;height:15px;color:var(--accent);flex-shrink:0}
+.tips ul{padding:0 14px 10px 30px;font-size:.82rem;color:#64748B;line-height:1.5}
+.tips li{margin-bottom:4px}
+
+.nav{position:fixed;bottom:0;left:0;width:100%;background:var(--white);border-top:1px solid var(--border);padding:10px 16px;display:none;justify-content:space-between;z-index:100}
+.nav.on{display:flex}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:11px 20px;border-radius:var(--r);border:none;font-family:var(--font);font-size:.95rem;font-weight:700;cursor:pointer;min-height:46px;transition:all .15s}
+.btn-p{background:var(--accent);color:var(--white)}
+.btn-p:hover{background:#C2410C}
+.btn-g{background:transparent;color:#64748B}
+.btn-g:hover{background:var(--muted)}
+.btn svg{width:16px;height:16px}
+.btn-s{padding:8px 14px;font-size:.82rem;min-height:38px}
+
+.done p{color:#64748B;margin-bottom:20px}
+.sum{background:var(--white);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px}
+.sum summary{padding:12px 14px;font-weight:700;font-size:.9rem;cursor:pointer;list-style:none}
+.sum summary::-webkit-details-marker{display:none}
+.sum .body{padding:0 14px 12px;font-size:.88rem;color:#64748B;white-space:pre-wrap;word-break:break-word}
+.sum .empty{font-style:italic;color:var(--border)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+
+.toast{position:fixed;bottom:74px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--white);padding:5px 14px;border-radius:16px;font-size:.78rem;opacity:0;transition:opacity .3s;pointer-events:none;z-index:50}
+.toast.on{opacity:1}
+
+.setup{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:20px}
+.setup label{display:block;font-size:.85rem;font-weight:700;margin-bottom:6px;color:#64748B}
+.setup input{width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:var(--r);font-family:var(--font);font-size:.9rem;color:var(--fg)}
+.setup input:focus{outline:none;border-color:var(--accent)}
+.setup small{display:block;margin-top:6px;font-size:.78rem;color:#94A3B8}
+
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<div class="progress" id="prog"><div class="progress-fill" id="progFill"></div></div>
+
+<!-- 0: Bienvenida -->
+<section class="screen welcome on" data-s="0">
+  <h1>Cuestionario para Socios Colaboradores</h1>
+  <p>Tus respuestas definen cómo debe funcionar la plataforma de negociación. Queremos entender cómo se compra y se negocia en construcción desde tu experiencia.</p>
+  <div class="mic-hint">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+    Puedes dictar tus respuestas con el micrófono
+  </div>
+  <p style="font-size:.85rem;color:#94A3B8">4 temas &middot; ~15 minutos</p>
+  <button class="btn btn-p" style="margin-top:20px" onclick="go(1)">Empezar</button>
+</section>
+
+<!-- 1: Cómo compras -->
+<section class="screen" data-s="1">
+  <h2>Cómo se compra en construcción</h2>
+  <ul class="prompts">
+    <li>¿Qué tipo de cosas se compran o subcontratan habitualmente?</li>
+    <li>¿Cómo decides a qué proveedores consultar?</li>
+    <li>¿Cómo llegan las ofertas — email, teléfono, Excel?</li>
+    <li>¿Qué información pides siempre en una oferta?</li>
+  </ul>
+  <div class="ta-wrap">
+    <textarea id="a1" placeholder="Cuéntanos cómo funciona el proceso de compra en tu día a día..."></textarea>
+    <button class="mic" data-t="a1" aria-label="Dictar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></button>
+  </div>
+  <details class="tips"><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>Consejos</summary><ul>
+    <li>Piensa en las últimas 3-4 compras que hayas gestionado — ¿qué tenían en común?</li>
+    <li>Nos interesa saber si comparas siempre varias ofertas o si a veces vas directo a un proveedor de confianza.</li>
+    <li>Si los proveedores mandan ofertas en formatos distintos, cuéntanos — el sistema tiene que saber interpretarlos.</li>
+  </ul></details>
+</section>
+
+<!-- 2: Cómo negocias -->
+<section class="screen" data-s="2">
+  <h2>Cómo se negocia en construcción</h2>
+  <ul class="prompts">
+    <li>¿Sobre qué se negocia más — precio, plazo, condiciones de pago?</li>
+    <li>¿Cómo sueles responder a una oferta que no te convence?</li>
+    <li>¿Cuántas idas y vueltas son normales antes de cerrar?</li>
+    <li>¿Qué tácticas o estrategias te funcionan bien?</li>
+  </ul>
+  <div class="ta-wrap">
+    <textarea id="a2" placeholder="Explícanos cómo negocias: qué funciona, qué no, y cómo decides cuándo cerrar..."></textarea>
+    <button class="mic" data-t="a2" aria-label="Dictar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></button>
+  </div>
+  <details class="tips"><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>Consejos</summary><ul>
+    <li>No hay respuesta incorrecta — queremos saber cómo negocias tú, no cómo dice un libro que se debería negociar.</li>
+    <li>Si cedes en plazo a cambio de mejor precio, o viceversa, ese tipo de intercambio es exactamente lo que necesitamos entender.</li>
+    <li>Cuéntanos también lo que no funciona — ayuda a saber qué debe evitar el sistema.</li>
+  </ul></details>
+</section>
+
+<!-- 3: Tus reglas -->
+<section class="screen" data-s="3">
+  <h2>Reglas y límites</h2>
+  <ul class="prompts">
+    <li>¿Hay condiciones que nunca aceptarías de un proveedor?</li>
+    <li>¿Quién toma la decisión final de adjudicar?</li>
+    <li>¿Hay información que nunca se deba compartir con un proveedor?</li>
+    <li>¿Qué condiciones de pago son habituales en el sector?</li>
+  </ul>
+  <div class="ta-wrap">
+    <textarea id="a3" placeholder="Cuéntanos tus líneas rojas, quién decide, y qué reglas no se pueden romper..."></textarea>
+    <button class="mic" data-t="a3" aria-label="Dictar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></button>
+  </div>
+  <details class="tips"><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>Consejos</summary><ul>
+    <li>Ejemplo de línea roja: nunca pagar más del 10% de anticipo, nunca aceptar plazos de entrega superiores a 90 días.</li>
+    <li>Si necesitas aprobación de alguien a partir de cierto importe, indícalo — el sistema puede respetar esa regla.</li>
+    <li>Todo lo que nos digas aquí es confidencial y nunca se comparte con proveedores.</li>
+  </ul></details>
+</section>
+
+<!-- 4: Tu mercado -->
+<section class="screen" data-s="4">
+  <h2>Tu mercado y proveedores</h2>
+  <ul class="prompts">
+    <li>¿Cómo son las relaciones con los proveedores en construcción?</li>
+    <li>¿Hay proveedores con los que se negocia distinto — más suave o más duro?</li>
+    <li>¿Qué valoras más de un buen proveedor?</li>
+    <li>¿Hay prácticas del sector que debamos conocer?</li>
+  </ul>
+  <div class="ta-wrap">
+    <textarea id="a4" placeholder="Háblanos de cómo funciona el mercado de proveedores en construcción..."></textarea>
+    <button class="mic" data-t="a4" aria-label="Dictar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></button>
+  </div>
+  <details class="tips"><summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>Consejos</summary><ul>
+    <li>Si con ciertos proveedores se negocia distinto (más cercano, más formal), cuéntanos — el sistema adaptará el tono.</li>
+    <li>Prácticas del sector: no presionar en agosto, respetar acuerdos verbales, rappels por volumen anual, etc.</li>
+    <li>Cuéntanos qué te frustra del proceso actual — nos ayuda a saber qué debe resolver la plataforma.</li>
+  </ul></details>
+</section>
+
+<!-- 5: Hecho -->
+<section class="screen done" data-s="5">
+  <h2>Gracias — tus respuestas ya están guardadas</h2>
+  <p>Si quieres cambiar algo, vuelve a cualquier sección. Tus respuestas se enviarán al repositorio del proyecto.</p>
+  <div id="sumBox"></div>
+  <div class="actions">
+    <button class="btn btn-p btn-s" onclick="submitToGitHub()">Enviar al repositorio</button>
+    <button class="btn btn-g btn-s" onclick="copyAll()">Copiar respuestas</button>
+    <button class="btn btn-g btn-s" onclick="clearAll()">Borrar todo</button>
+  </div>
+  <div id="submitStatus" style="margin-top:12px;font-size:.85rem;color:#64748B"></div>
+</section>
+
+<!-- GitHub token setup (shown once) -->
+<section class="screen" data-s="setup">
+  <h2>Configuración inicial</h2>
+  <p style="color:#64748B;margin-bottom:16px;font-size:.9rem">Para guardar tus respuestas en el repositorio del proyecto, necesitamos un token de GitHub. Solo se pide una vez.</p>
+  <div class="setup">
+    <label for="ghToken">GitHub Personal Access Token</label>
+    <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
+    <small>Necesita permiso de escritura en el repositorio. Se guarda solo en tu navegador.</small>
+  </div>
+  <div class="setup">
+    <label for="ghRepo">Repositorio</label>
+    <input type="text" id="ghRepo" value="dienomb/construction-negotiator-spec">
+    <small>Formato: propietario/nombre-del-repo</small>
+  </div>
+  <div class="setup">
+    <label for="partnerName">Tu nombre</label>
+    <input type="text" id="partnerName" placeholder="Ej: Juan García">
+    <small>Para identificar tus respuestas.</small>
+  </div>
+  <button class="btn btn-p" style="margin-top:16px;width:100%" onclick="saveSetup()">Guardar y empezar</button>
+</section>
+
+<div class="nav" id="nav">
+  <button class="btn btn-g" id="bBack" onclick="prev()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Atrás</button>
+  <button class="btn btn-p" id="bNext" onclick="next()">Siguiente<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+</div>
+<div class="toast" id="toast">Guardado</div>
+
+<script>
+const T=4,SK='cn-q',titles=['Cómo se compra','Cómo se negocia','Reglas y límites','Tu mercado'];
+let cur=0;
+
+// --- Nav ---
+function go(n){
+  if(n===1&&!localStorage.getItem(SK+'-token')){n='setup'}
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  const t=document.querySelector(`[data-s="${n}"]`);
+  if(t)t.classList.add('on');
+  cur=n;
+  updUI();
+  scrollTo({top:0,behavior:'smooth'});
+  if(n===5){save();buildSum()}
+}
+function next(){if(typeof cur==='number'&&cur<5)go(cur+1)}
+function prev(){if(typeof cur==='number'&&cur>1)go(cur-1)}
+
+function updUI(){
+  const p=document.getElementById('prog'),f=document.getElementById('progFill'),nav=document.getElementById('nav');
+  if(typeof cur!=='number'||cur===0||cur===5||cur==='setup'){p.classList.remove('on');nav.classList.remove('on');return}
+  p.classList.add('on');f.style.width=(cur/T*100)+'%';
+  nav.classList.add('on');
+  document.getElementById('bBack').style.visibility=cur>1?'visible':'hidden';
+  document.getElementById('bNext').innerHTML=cur===T?'Finalizar <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>':'Siguiente <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>';
+}
+
+// --- Save/Load ---
+function save(){
+  const d={};for(let i=1;i<=T;i++){const e=document.getElementById('a'+i);if(e)d[i]=e.value}
+  localStorage.setItem(SK,JSON.stringify(d));toast('Guardado');
+}
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(SK)||'{}');for(const[k,v]of Object.entries(d)){const e=document.getElementById('a'+k);if(e)e.value=v}}catch(e){}
+}
+function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1400)}
+let _dt;document.querySelectorAll('textarea').forEach(t=>{t.addEventListener('blur',save);t.addEventListener('input',()=>{clearTimeout(_dt);_dt=setTimeout(save,2000)})});
+
+// --- Setup ---
+function saveSetup(){
+  const tk=document.getElementById('ghToken').value.trim();
+  const rp=document.getElementById('ghRepo').value.trim();
+  const nm=document.getElementById('partnerName').value.trim();
+  if(!tk||!rp||!nm){toast('Completa todos los campos');return}
+  localStorage.setItem(SK+'-token',tk);
+  localStorage.setItem(SK+'-repo',rp);
+  localStorage.setItem(SK+'-name',nm);
+  go(1);
+}
+
+// --- Voice ---
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let arec=null,abtn=null;
+if(!SR){document.querySelectorAll('.mic').forEach(b=>b.classList.add('hide'));document.querySelector('.mic-hint')?.remove()}
+else document.querySelectorAll('.mic').forEach(b=>b.addEventListener('click',()=>toggleRec(b)));
+
+function toggleRec(btn){
+  if(arec&&abtn===btn){arec.stop();return}
+  if(arec)arec.stop();
+  const ta=document.getElementById(btn.dataset.t);if(!ta)return;
+  const r=new SR();r.lang='es-ES';r.continuous=true;r.interimResults=true;
+  let ft='';
+  r.onstart=()=>{btn.classList.add('rec');abtn=btn};
+  r.onresult=(e)=>{let im='';for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)ft+=e.results[i][0].transcript+' ';else im+=e.results[i][0].transcript}
+    const ex=ta.value.trimEnd();ta.value=ex+(ex?'\n':'')+ft+im};
+  r.onend=()=>{btn.classList.remove('rec');if(abtn===btn){arec=null;abtn=null}if(ft){ta.value=ta.value.trimEnd();save()}};
+  r.onerror=()=>{btn.classList.remove('rec');arec=null;abtn=null};
+  arec=r;ft='';r.start();
+}
+
+// --- Summary ---
+function buildSum(){
+  const c=document.getElementById('sumBox');c.innerHTML='';
+  for(let i=1;i<=T;i++){
+    const v=(document.getElementById('a'+i)?.value||'').trim();
+    c.innerHTML+=`<details class="sum"${v?' open':''}><summary>${titles[i-1]}</summary><div class="body">${v||'<span class="empty">Sin respuesta</span>'}</div></details>`;
+  }
+}
+
+// --- GitHub submit ---
+async function submitToGitHub(){
+  const token=localStorage.getItem(SK+'-token');
+  const repo=localStorage.getItem(SK+'-repo');
+  const name=localStorage.getItem(SK+'-name')||'socio';
+  if(!token||!repo){toast('Configura GitHub primero');return}
+
+  const status=document.getElementById('submitStatus');
+  status.textContent='Enviando...';
+
+  const answers={};
+  for(let i=1;i<=T;i++)answers[titles[i-1]]=document.getElementById('a'+i)?.value?.trim()||'';
+  const content={nombre:name,fecha:new Date().toISOString(),respuestas:answers};
+  const slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-+$/,'');
+  const date=new Date().toISOString().slice(0,10);
+  const path=`client/respuestas/${slug}_${date}.json`;
+
+  try{
+    const res=await fetch(`https://api.github.com/repos/${repo}/contents/${path}`,{
+      method:'PUT',
+      headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json','Accept':'application/vnd.github+json'},
+      body:JSON.stringify({message:`respuestas: ${name} (${date})`,content:btoa(unescape(encodeURIComponent(JSON.stringify(content,null,2))))})
+    });
+    if(res.ok){status.innerHTML='<span style="color:#16a34a">Enviado correctamente al repositorio.</span>'}
+    else{const e=await res.json();status.innerHTML=`<span style="color:#DC2626">Error: ${e.message||res.status}</span>`}
+  }catch(e){status.innerHTML=`<span style="color:#DC2626">Error de conexión: ${e.message}</span>`}
+}
+
+// --- Copy / Clear ---
+function copyAll(){
+  let t='Construction Negotiator — Respuestas\n'+'═'.repeat(40)+'\n\n';
+  for(let i=1;i<=T;i++)t+=titles[i-1]+'\n'+'─'.repeat(30)+'\n'+(document.getElementById('a'+i)?.value?.trim()||'(sin respuesta)')+'\n\n';
+  navigator.clipboard.writeText(t).then(()=>toast('Copiado'));
+}
+function clearAll(){if(!confirm('¿Borrar todas las respuestas?'))return;localStorage.removeItem(SK);for(let i=1;i<=T;i++){const e=document.getElementById('a'+i);if(e)e.value=''}go(0)}
+
+// --- Init ---
+load();updUI();
+</script>
+</body>
+</html>
